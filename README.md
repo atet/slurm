@@ -15,7 +15,7 @@ You will be able to get through this tutorial in about 10 minutes using cloud re
 * [0. Requirements](#0-requirements)
 * [1. Introduction](#1-introduction)
 * [2. Installation](#2-installation)
-* [3. Basic Examples](#3-basic-examples)
+* [3. Functional Test](#3-functional-test)
 * [4. Next Steps](#4-next-steps)
 * [5. Acknowledgements](#5-acknowledgements)
 
@@ -241,13 +241,49 @@ $ scontrol show node
 <DETAILED INFO ON EACH NODE>
 ```
 
+Whew! That was a lot of switching and maybe a script would've been better (i.e., infrastructure-as-code (IaS)), but where's the fun in that? Let's test out this cluster in the next section.
+
 [Back to Top](#table-of-contents)
 
 ----------------------------------------------------------------------------
 
-## 3. Basic Examples
+## 3. Functional Test
 
-BASIC EXAMPLES.
+We will submit a "Hello World" shell script that gets sent to the compute node for processing and outputs the results in the shared NFS directory.
+
+3.1. On the control node, `node1`, Create a file named `hello` and set executable permissions:
+
+```bash
+$ touch hello && \
+  chmod 744 hello && \
+  nano hello
+
+#!/bin/env bash
+
+#SBATCH --output=/shared/slurm_%j_%x.out
+
+date
+echo "Hello world from $HOSTNAME"
+sleep 10
+```
+
+3.2. Submit `hello` to the cluster, it will run for 10 seconds (check status with `squeue`) and output results to `/shared`:
+   - NOTE: Slurm saves output locally to the processing node, it does it manage files; therefore, save to NFS directory: https://stackoverflow.com/q/75727799
+
+```bash
+$ sbatch hello
+$ squeue
+
+JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+2   cluster    hello    slurm  R       0:03      1 node2
+
+$ cat /shared/slurm_*
+
+Sun May  5 06:45:40 UTC 2024
+Hello world from node2
+```
+
+Congratulations! You've set up an extremely useful capability for collaboration on compute intensive tasks.
 
 [Back to Top](#table-of-contents)
 
@@ -255,7 +291,7 @@ BASIC EXAMPLES.
 
 ## 4. Next Steps
 
-Our setup can easily be scaled by just installing Slurm on additional compute nodes and ensuring everything is properly networked together.
+Our setup can easily be scaled by just installing Slurm on additional compute nodes and ensuring everything is properly networked together. Try adding another compute node to your cluster, a `node3`...
 
 [Back to Top](#table-of-contents)
 
@@ -265,7 +301,8 @@ Our setup can easily be scaled by just installing Slurm on additional compute no
 
 **Description** | **URL Link**
 --- | ---
-null | null
+Slurm Official Website | https://www.schedmd.com/
+Slurm Official Documentation | https://slurm.schedmd.com/documentation.html
 
 [Back to Top](#table-of-contents)
 
@@ -283,7 +320,7 @@ Issue | Solution
 
 ## Acknowledgements
 
-This was my fifth attempt at this tutorial! Between trying to install this locally, on Docker, and some other configurations, this resource got me most of the way to get this on the cloud; thank you **mhsamsal**: https://mhsamsal.wordpress.com/2022/01/15/building-a-slurm-cluster-using-amazon-ec2-aws-virtual-machines/
+This was my fifth attempt at this tutorial! Between trying to install this locally, on Docker, and some other fancier-than-needed configurations, this resource got me most of the way to get this on the cloud; thank you, [**mhsamsal**](https://mhsamsal.wordpress.com/2022/01/15/building-a-slurm-cluster-using-amazon-ec2-aws-virtual-machines)!
 
 [Back to Top](#table-of-contents)
 
